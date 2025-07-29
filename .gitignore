@@ -224,3 +224,6 @@ outputs/
 *.csv
 *.pt
 *.ckpt
+*.gz
+
+code/
