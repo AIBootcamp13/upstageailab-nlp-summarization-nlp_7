@@ -18,6 +18,7 @@ def main():
         )
         for r in rouge_score
     ])
+    
     # DataFrame에 추가
     data['rouge-1'] = rouge_1
     data['rouge-2'] = rouge_2
