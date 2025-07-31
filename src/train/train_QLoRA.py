@@ -1,8 +1,9 @@
-from transformers import Seq2SeqTrainer, EarlyStoppingCallback
+from transformers import Trainer, EarlyStoppingCallback, DataCollatorForSeq2Seq
 import wandb
 import os
 import sys
 import torch
+from peft import PeftModel
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', ".."))
 sys.path.append(ROOT_DIR)
@@ -10,9 +11,9 @@ print(ROOT_DIR)
 
 from src.train.seq2seqarg import load_seq2seqarg
 from src.metrics.rouge import compute_rouge
-from src.model.bart import load_tokenizer_and_model_for_train
+from src.model.LLM_QLoRA import load_tokenizer_and_model_for_train
 from src.preprocess.preprocess import Preprocess
-from src.dataset.datamodule import prepare_train_dataset
+from src.dataset.datamodule_QLoRA import prepare_train_dataset
 from src.utils.wandb import wandb_init
 from src.utils.config import load_config, save_config
 
@@ -53,11 +54,13 @@ def train(config):
     print('-'*10, 'Make trainer', '-'*10,)
 
     # Trainer 클래스를 정의합니다.
-    trainer = Seq2SeqTrainer(
+    trainer = Trainer(
         model=generate_model, # 사용자가 사전 학습하기 위해 사용할 모델을 입력합니다.
         args=training_args,
         train_dataset=train_inputs_dataset,
         eval_dataset=val_inputs_dataset,
+        tokenizer=tokenizer,
+        data_collator=DataCollatorForSeq2Seq(tokenizer, model=generate_model),
         compute_metrics = lambda pred: compute_rouge(config, tokenizer, pred),
         callbacks = [MyCallback]
     )
@@ -65,14 +68,18 @@ def train(config):
 
     trainer.train()
 
+    best_ckpt = trainer.state.best_model_checkpoint
+
+    generate_model.save_pretrained(best_ckpt, save_adapter=True)
+
     wandb.finish()
-    return trainer.state.best_model_checkpoint
+    return best_ckpt
 
 
 if __name__ == "__main__":
-    config_adj, config = load_config()
+    config_adj, config = load_config(name="config_QLoRA")
     best_model_checkpoint = train(config_adj)
 
     config['inference']['ckt_path'] = best_model_checkpoint
-    save_config(config)
+    save_config(config, name="config_QLoRA")
     print(best_model_checkpoint)
