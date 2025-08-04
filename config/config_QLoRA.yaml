@@ -1,16 +1,22 @@
-# config.yaml
-
+bnb:
+  bnb_4bit_compute_dtype: float16
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  load_in_4bit: true
+early_stopping:
+  early_stopping_patience: 3
+  early_stopping_threshold: 0.001
 general:
   data_path: data
   model_folder_name: solar_qlora
   model_name: upstage/SOLAR-10.7B-Instruct-v1.0
   output_dir: outputs
-
 inference:
-  batch_size: 32
-  ckt_path: /root/upstageailab-nlp-summarization-nlp_7/outputs/kobart/checkpoint-1750
+  batch_size: 1
+  ckt_path: /root/upstageailab-nlp-summarization-nlp_7/outputs/solar_qlora/checkpoint-125
   early_stopping: true
-  generate_max_length: 100
+  generate_max_length: 128
+  input_max_length: 618
   no_repeat_ngram_size: 2
   num_beams: 4
   remove_tokens:
@@ -19,80 +25,60 @@ inference:
   - </s>
   - <pad>
   result_path: outputs/prediction
-
-bnb:
-  load_in_4bit: true
-  bnb_4bit_use_double_quant: true
-  bnb_4bit_quant_type: nf4
-  bnb_4bit_compute_dtype: float16
-
-tokenizer:
-  padding_side: right
-  pad_token_as_eos: true
-  max_source_length: 620
-  max_target_length: 100
-  special_tokens:
-  - '#Address#'
-  - '#CardNumber#'
-  - '#CarNumber#'
-  - '#DateOfBirth#'
-  - '#Email#'
-  - '#Name#'
-  - '#PassportNumber#'
-  - '#Person1#'
-  - '#Person2#'
-  - '#Person3#'
-  - '#Person4#'
-  - '#Person5#'
-  - '#Person6#'
-  - '#Person7#'
-  - '#PersonName#'
-  - '#PhoneNumber#'
-  - '#Price#'
-  - '#SSN#'
-
 lora:
-  r: 8
   alpha: 16
-  dropout: 0.05
   bias: none
+  dropout: 0.05
+  r: 8
   target_modules:
-    - q_proj
-    - v_proj
-
+  - q_proj
+  - v_proj
+tokenizer:
+  max_length: 1024
+  max_summary_length: 128
+  pad_token_as_eos: true
+  # special_tokens:
+  # - '#Address#'
+  # - '#CardNumber#'
+  # - '#CarNumber#'
+  # - '#DateOfBirth#'
+  # - '#Email#'
+  # - '#Name#'
+  # - '#PassportNumber#'
+  # - '#Person1#'
+  # - '#Person2#'
+  # - '#Person3#'
+  # - '#Person4#'
+  # - '#Person5#'
+  # - '#Person6#'
+  # - '#Person7#'
 training:
+  disable_tqdm: false
   do_eval: true
   do_train: true
   evaluation_strategy: epoch
+  bf16: false
   fp16: true
-  gradient_accumulation_steps: 16
-  per_device_train_batch_size: 1
-  per_device_eval_batch_size: 16
-  num_train_epochs: 3
-  learning_rate: 2.0e-4
-  lr_scheduler_type: cosine
-  warmup_ratio: 0.1
-  weight_decay: 0.01
-
-  metric_for_best_model: eval_rouge_avg
-  greater_is_better: true
+  generation_max_length: 128
+  learning_rate: 0.0002
   load_best_model_at_end: true
   logging_dir: ./logs
-  logging_strategy: epoch
-  save_strategy: epoch
-  save_total_limit: 1
-  save_safetensors: false
-
-  generation_max_length: 100
-  predict_with_generate: true
-  report_to: wandb  # 또는 wandb
-  seed: 42
+  logging_steps: 10
+  logging_strategy: steps
+  lr_scheduler_type: cosine
+  num_train_epochs: 3
   optim: paged_adamw_8bit
-
-early_stopping:
-  early_stopping_patience: 3
-  early_stopping_threshold: 0.001
-
+  per_device_eval_batch_size: 1
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  predict_with_generate: true
+  report_to: wandb
+  save_safetensors: false
+  save_strategy: epoch
+  save_total_limit: 3
+  seed: 42
+  warmup_ratio: 0.1
+  weight_decay: 0.01
 wandb:
   entity: NLP-7
   project: QLoRA

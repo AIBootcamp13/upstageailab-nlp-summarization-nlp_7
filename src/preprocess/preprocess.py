@@ -14,8 +14,7 @@ class Preprocess:
     def make_set_as_df(file_path, is_train = True):
         if is_train:
             df = pd.read_csv(file_path)
-            train_df = df[['fname','dialogue','summary','topic']]
-            return train_df
+            return df
         else:
             df = pd.read_csv(file_path)
             test_df = df[['fname','dialogue']]

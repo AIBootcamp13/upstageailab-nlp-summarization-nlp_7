@@ -17,6 +17,15 @@ from src.dataset.datamodule_QLoRA import prepare_train_dataset
 from src.utils.wandb import wandb_init
 from src.utils.config import load_config, save_config
 
+# def compute(pred, tokenizer, config):
+#     print('-'*10, 'compute', '-'*10,)
+#     preds, labels = pred
+#     labels[labels == -100] = tokenizer.pad_token_id
+#     decoded_labels = tokenizer.batch_decode(labels)
+
+#     print(decoded_labels)
+#     return 0
+
 
 def train(config):
     device = torch.device('cuda:0' if torch.cuda.is_available()  else 'cpu')
@@ -26,9 +35,11 @@ def train(config):
     generate_model, tokenizer = load_tokenizer_and_model_for_train(config, device)
     print('-'*10,"tokenizer special tokens : ",tokenizer.special_tokens_map,'-'*10)
 
-    preprocessor = Preprocess(config['tokenizer']['bos_token'], config['tokenizer']['eos_token'])
+    tokenizer.padding_side = 'right'
+
+    preprocessor = Preprocess(None, None)
     data_path = config['general']['data_path']
-    train_inputs_dataset, val_inputs_dataset = prepare_train_dataset(config, preprocessor, data_path, tokenizer)
+    train_inputs_dataset, val_inputs_dataset = prepare_train_dataset(config, preprocessor, data_path, tokenizer, 1000, 250)
 
     print('-'*10, 'Make training arguments', '-'*10,)
 
@@ -36,7 +47,7 @@ def train(config):
         os.makedirs(os.path.join(ROOT_DIR, config['general']['output_dir']))
 
     if not os.path.exists(os.path.join(ROOT_DIR, config['general']['output_dir'], config['general']['model_folder_name'])):
-        os.makedirs(os.path.join(ROOT_DIR, "outputs", config['general']['model_folder_name']))
+        os.makedirs(os.path.join(ROOT_DIR, config['general']['output_dir'], config['general']['model_folder_name']))
 
     # set training args
     training_args = load_seq2seqarg(config)
@@ -60,10 +71,10 @@ def train(config):
         train_dataset=train_inputs_dataset,
         eval_dataset=val_inputs_dataset,
         tokenizer=tokenizer,
-        data_collator=DataCollatorForSeq2Seq(tokenizer, model=generate_model),
-        compute_metrics = lambda pred: compute_rouge(config, tokenizer, pred),
-        callbacks = [MyCallback]
+        # compute_metrics = lambda pred: compute(pred, tokenizer, config)
+        # callbacks = [MyCallback],
     )
+    print(f"Using device: {trainer.args.device}")
     print('-'*10, 'Make trainer complete', '-'*10,)
 
     trainer.train()
@@ -77,6 +88,7 @@ def train(config):
 
 
 if __name__ == "__main__":
+    print(torch.cuda.is_bf16_supported())
     config_adj, config = load_config(name="config_QLoRA")
     best_model_checkpoint = train(config_adj)
 
