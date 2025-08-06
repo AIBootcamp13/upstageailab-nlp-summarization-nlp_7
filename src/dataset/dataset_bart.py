@@ -16,6 +16,7 @@ class DatasetForTrain(Dataset):
         item2.pop('attention_mask')
         item.update(item2) #item[input_ids], item[attention_mask] item[decoder_input_ids], item[decoder_attention_mask]
         item['labels'] = self.labels['input_ids'][idx] #item[input_ids], item[attention_mask] item[decoder_input_ids], item[decoder_attention_mask], item[labels]
+        # item['labels'][item['labels'] == self.padding_token_id] = -100
         return item
 
     def __len__(self):

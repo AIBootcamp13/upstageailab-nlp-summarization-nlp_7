@@ -1,13 +1,32 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, TaskType, PeftModel
+from peft import LoraConfig, get_peft_model, TaskType, PeftModel, prepare_model_for_kbit_training
 import torch
+
+def print_trainable_parameters(model):
+    """
+    Prints the number of trainable parameters in the model.
+    """
+    trainable_params = 0
+    all_param = 0
+    for _, param in model.named_parameters():
+        all_param += param.numel()
+        if param.requires_grad:
+            trainable_params += param.numel()
+    print(
+        f"trainable params: {trainable_params} || all params: {all_param} || trainable%: {100 * trainable_params / all_param}"
+    )
 
 def load_tokenizer_and_model_for_train(config, device):
 
     print('-'*10, 'Load tokenizer & model', '-'*10,)
     print('-'*10, f'Model Name : {config["general"]["model_name"]}', '-'*10,)
     model_name = config['general']['model_name']
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, eos_token='</s>')
+
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+        
+    tokenizer.padding_side = 'right'
 
     # if config['tokenizer']['pad_token_as_eos']:
     #     tokenizer.pad_token = tokenizer.eos_token
@@ -30,6 +49,10 @@ def load_tokenizer_and_model_for_train(config, device):
         device_map="auto",
         attn_implementation="sdpa",
     )
+
+    generate_model.gradient_checkpointing_enable()
+    generate_model = prepare_model_for_kbit_training(generate_model)
+
     # generate_model.resize_token_embeddings(len(tokenizer))
 
     lora_config = LoraConfig(
@@ -41,7 +64,7 @@ def load_tokenizer_and_model_for_train(config, device):
         task_type=TaskType.CAUSAL_LM
     )
     generate_model = get_peft_model(generate_model, lora_config)
-    
+    print_trainable_parameters(generate_model)
 
     return generate_model , tokenizer
 

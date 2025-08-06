@@ -1,4 +1,4 @@
-from transformers import Seq2SeqTrainer, EarlyStoppingCallback
+from transformers import Seq2SeqTrainer, EarlyStoppingCallback, DataCollatorForSeq2Seq
 import wandb
 import os
 import sys
@@ -10,7 +10,7 @@ print(ROOT_DIR)
 
 from src.train.seq2seqarg import load_seq2seqarg
 from src.metrics.rouge import compute_rouge
-from src.model.bart import load_tokenizer_and_model_for_train
+from src.model.bart import load_tokenizer_and_model_for_train, load_tokenizer_and_model_for_test
 from src.preprocess.preprocess import Preprocess
 from src.dataset.datamodule import prepare_train_dataset
 from src.utils.wandb import wandb_init
@@ -22,8 +22,9 @@ def train(config):
     print('-'*10, f'device : {device}', '-'*10,)
     print(torch.__version__)
 
-    generate_model, tokenizer = load_tokenizer_and_model_for_train(config, device)
+    generate_model, tokenizer = load_tokenizer_and_model_for_test(config, device)
     print('-'*10,"tokenizer special tokens : ",tokenizer.special_tokens_map,'-'*10)
+    print(tokenizer.special_tokens_map)
 
     preprocessor = Preprocess(config['tokenizer']['bos_token'], config['tokenizer']['eos_token'])
     data_path = config['general']['data_path']
@@ -35,7 +36,7 @@ def train(config):
         os.makedirs(os.path.join(ROOT_DIR, config['general']['output_dir']))
 
     if not os.path.exists(os.path.join(ROOT_DIR, config['general']['output_dir'], config['general']['model_folder_name'])):
-        os.makedirs(os.path.join(ROOT_DIR, "outputs", config['general']['model_folder_name']))
+        os.makedirs(os.path.join(ROOT_DIR, config['general']['output_dir'], config['general']['model_folder_name']))
 
     # set training args
     training_args = load_seq2seqarg(config)
@@ -51,6 +52,7 @@ def train(config):
 
     print('-'*10, 'Make training arguments complete', '-'*10,)
     print('-'*10, 'Make trainer', '-'*10,)
+
 
     # Trainer 클래스를 정의합니다.
     trainer = Seq2SeqTrainer(

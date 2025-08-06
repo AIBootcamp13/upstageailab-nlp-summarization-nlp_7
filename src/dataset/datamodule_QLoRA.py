@@ -9,14 +9,12 @@ sys.path.append(ROOT_DIR)
 from src.utils.sampling import stratified_sample
 
 
-def format_sample(example, tokenizer, config):
-    max_length = config['tokenizer']['max_length']               # 예: 1024
-    max_summary_length = config['tokenizer']['max_summary_length'] - 1  # 예: 128
-    max_prompt_length = max_length - max_summary_length - 2          # 예: 896
+def format_sample(example, tokenizer, config):          
+    max_summary_length = config['tokenizer']['max_summary_length']  # 예: 128
+    max_prompt_length = config['tokenizer']['max_prompt_length']          # 예: 896
 
     bos = tokenizer.bos_token_id  # 예: <s>
     eos = tokenizer.eos_token_id  # 예: </s>
-    pad = tokenizer.pad_token_id
     # 1. Prompt 토크나이즈 (고정 길이 이하로 자름)
     prompt = f"### Instruction: 다음 대화를 요약해줘.\n### Input:\n{example['dialogue']}\n### Output:\n"
     prompt_ids = tokenizer(
@@ -36,25 +34,14 @@ def format_sample(example, tokenizer, config):
 
     # 3. Concat
     input_ids = [bos] + prompt_ids + summary_ids + [eos]
-    attention_mask = [1] * len(input_ids)
-
-    # 4. Padding (right padding 기준)
-    padding_len = max_length - len(input_ids)
-    input_ids = input_ids + [pad] * padding_len
-    attention_mask = attention_mask + [0] * padding_len
 
     # 5. Labels: prompt + padding은 -100, summary만 정답
-    labels = [-100] * (len(prompt_ids) + 1) + summary_ids + [eos] + [-100] * padding_len
-    # labels += [-100] * (max_length - len(labels))  # 오른쪽에 남은 padding
+    labels = [-100] * (len(prompt_ids) + 1) + summary_ids + [eos]
 
-    assert len(input_ids) == max_length
-    assert len(attention_mask) == max_length
-    assert len(labels) == max_length
-
+    # attention_mask는 datacollator에서 처리
     return {
-        "input_ids": torch.tensor(input_ids, dtype=torch.long),
-        "attention_mask": torch.tensor(attention_mask, dtype=torch.long),
-        "labels": torch.tensor(labels, dtype=torch.long)
+        "input_ids": input_ids,
+        "labels": labels
     }
 
 
@@ -63,15 +50,32 @@ def format_sample_eval(example, tokenizer, config):
     
     model_inputs = tokenizer(
         prompt,
-        max_length=config['inference']['input_max_length'],
-        padding="max_length",
-        truncation=True,
-        return_tensors="pt"  # 중요!!
+        truncation=True,        # 길면 자르고
+        padding=False,          # 패딩 없이
+        return_tensors="pt"     # 텐서로 반환
     )
     
     return {
         "input_ids": model_inputs["input_ids"].squeeze(0),
         "attention_mask": model_inputs["attention_mask"].squeeze(0),
+        "summary": example["summary"],
+        "dialogue": example["dialogue"]
+    }
+
+def format_sample_infer(example, tokenizer, config):
+    prompt = f"### Instruction: 다음 대화를 요약해줘.\n### Input:\n{example['dialogue']}\n### Output:\n"
+    
+    model_inputs = tokenizer(
+        prompt,
+        truncation=True,        # 길면 자르고
+        padding=False,          # 패딩 없이
+        return_tensors="pt"     # 텐서로 반환
+    )
+    
+    return {
+        "input_ids": model_inputs["input_ids"].squeeze(0),
+        "attention_mask": model_inputs["attention_mask"].squeeze(0),
+        "fname": example["fname"]
     }
 
 def prepare_train_dataset(config, preprocessor, data_path, tokenizer, sample_size=None, sample_size_val=None):
@@ -112,10 +116,21 @@ def prepare_eval_dataset(config, preprocessor, data_path, tokenizer, sample_size
     val_data = preprocessor.make_set_as_df(val_file_path)
 
     if sample_size:
-        val_data = val_data.sample(sample_size)  
+        val_data = val_data.sample(sample_size, random_state=42)  
 
     dataset = Dataset.from_pandas(val_data)
     gen_dataset = dataset.map(lambda x: format_sample_eval(x, tokenizer, config), remove_columns=dataset.column_names)
+    return gen_dataset
+
+def prepare_test_dataset(config, preprocessor, data_path, tokenizer, sample_size=None):
+    test_file_path = os.path.join(data_path, 'test.csv')
+    test_data = preprocessor.make_set_as_df(test_file_path)
+
+    if sample_size:
+        test_data = test_data.sample(sample_size, random_state=42)  
+
+    dataset = Dataset.from_pandas(test_data)
+    gen_dataset = dataset.map(lambda x: format_sample_infer(x, tokenizer, config), remove_columns=dataset.column_names)
     return gen_dataset
 
 

@@ -1,4 +1,4 @@
-from transformers import Trainer, EarlyStoppingCallback, DataCollatorForSeq2Seq
+from transformers import Trainer, EarlyStoppingCallback, DataCollatorWithPadding
 import wandb
 import os
 import sys
@@ -16,6 +16,7 @@ from src.preprocess.preprocess import Preprocess
 from src.dataset.datamodule_QLoRA import prepare_train_dataset
 from src.utils.wandb import wandb_init
 from src.utils.config import load_config, save_config
+from src.utils.customcollate import custom_causal_lm_collator
 
 # def compute(pred, tokenizer, config):
 #     print('-'*10, 'compute', '-'*10,)
@@ -35,11 +36,9 @@ def train(config):
     generate_model, tokenizer = load_tokenizer_and_model_for_train(config, device)
     print('-'*10,"tokenizer special tokens : ",tokenizer.special_tokens_map,'-'*10)
 
-    tokenizer.padding_side = 'right'
-
     preprocessor = Preprocess(None, None)
     data_path = config['general']['data_path']
-    train_inputs_dataset, val_inputs_dataset = prepare_train_dataset(config, preprocessor, data_path, tokenizer, 1000, 250)
+    train_inputs_dataset, val_inputs_dataset = prepare_train_dataset(config, preprocessor, data_path, tokenizer)
 
     print('-'*10, 'Make training arguments', '-'*10,)
 
@@ -64,6 +63,8 @@ def train(config):
     print('-'*10, 'Make training arguments complete', '-'*10,)
     print('-'*10, 'Make trainer', '-'*10,)
 
+    data_collator = custom_causal_lm_collator(tokenizer)
+
     # Trainer 클래스를 정의합니다.
     trainer = Trainer(
         model=generate_model, # 사용자가 사전 학습하기 위해 사용할 모델을 입력합니다.
@@ -71,9 +72,12 @@ def train(config):
         train_dataset=train_inputs_dataset,
         eval_dataset=val_inputs_dataset,
         tokenizer=tokenizer,
+        data_collator=data_collator,
         # compute_metrics = lambda pred: compute(pred, tokenizer, config)
         # callbacks = [MyCallback],
     )
+    generate_model.config.use_cache = False
+
     print(f"Using device: {trainer.args.device}")
     print('-'*10, 'Make trainer complete', '-'*10,)
 
@@ -88,7 +92,6 @@ def train(config):
 
 
 if __name__ == "__main__":
-    print(torch.cuda.is_bf16_supported())
     config_adj, config = load_config(name="config_QLoRA")
     best_model_checkpoint = train(config_adj)
 

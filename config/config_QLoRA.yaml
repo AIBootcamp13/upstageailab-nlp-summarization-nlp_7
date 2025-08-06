@@ -12,11 +12,10 @@ general:
   model_name: upstage/SOLAR-10.7B-Instruct-v1.0
   output_dir: outputs
 inference:
-  batch_size: 1
-  ckt_path: /root/upstageailab-nlp-summarization-nlp_7/outputs/solar_qlora/checkpoint-125
+  batch_size: 2
+  ckt_path: /root/upstageailab-nlp-summarization-nlp_7/outputs/solar_qlora/checkpoint-1600
   early_stopping: true
   generate_max_length: 128
-  input_max_length: 618
   no_repeat_ngram_size: 2
   num_beams: 4
   remove_tokens:
@@ -26,55 +25,43 @@ inference:
   - <pad>
   result_path: outputs/prediction
 lora:
-  alpha: 16
+  alpha: 32
   bias: none
   dropout: 0.05
   r: 8
   target_modules:
   - q_proj
   - v_proj
+  - k_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
 tokenizer:
   max_length: 1024
+  max_prompt_length: 1024
   max_summary_length: 128
   pad_token_as_eos: true
-  # special_tokens:
-  # - '#Address#'
-  # - '#CardNumber#'
-  # - '#CarNumber#'
-  # - '#DateOfBirth#'
-  # - '#Email#'
-  # - '#Name#'
-  # - '#PassportNumber#'
-  # - '#Person1#'
-  # - '#Person2#'
-  # - '#Person3#'
-  # - '#Person4#'
-  # - '#Person5#'
-  # - '#Person6#'
-  # - '#Person7#'
 training:
-  disable_tqdm: false
-  do_eval: true
+  do_eval: false
   do_train: true
-  evaluation_strategy: epoch
-  bf16: false
   fp16: true
-  generation_max_length: 128
-  learning_rate: 0.0002
-  load_best_model_at_end: true
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0001
+  # load_best_model_at_end: true
   logging_dir: ./logs
   logging_steps: 10
   logging_strategy: steps
   lr_scheduler_type: cosine
   num_train_epochs: 3
   optim: paged_adamw_8bit
-  per_device_eval_batch_size: 1
-  per_device_train_batch_size: 1
-  gradient_accumulation_steps: 8
-  predict_with_generate: true
+  per_device_eval_batch_size: 2
+  per_device_train_batch_size: 2
+  predict_with_generate: false
   report_to: wandb
   save_safetensors: false
-  save_strategy: epoch
+  save_strategy: steps
+  save_steps: 50
   save_total_limit: 3
   seed: 42
   warmup_ratio: 0.1
