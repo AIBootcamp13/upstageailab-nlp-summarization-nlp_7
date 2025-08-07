@@ -129,9 +129,10 @@ bitsandbytes>=0.46.1
 ### EDA
 
 - 문장 길이 분포 분석: dialogue와 summary의 길이 분석
- <img width="453" height="292" alt="image" src="https://github.com/user-attachments/assets/93e79264-a39f-4a28-af9e-8cefd9832d11" />
+- <img width="453" height="292" alt="image" src="https://github.com/user-attachments/assets/93e79264-a39f-4a28-af9e-8cefd9832d11" />
+ 
 - coverage 분석: 요약문의 단어 중에 **원문에 존재하는 단어를 사용한 비율(Coverage)** 확인
- <img width="376" height="316" alt="image" src="https://github.com/user-attachments/assets/d743d452-e5e2-4da0-a60c-691c8e72f9dd" />
+<img width="376" height="316" alt="image" src="https://github.com/user-attachments/assets/d743d452-e5e2-4da0-a60c-691c8e72f9dd" />
 
 - coverage에 따른 요약 난이도 분석: Coverage ratio를 5개의 영역으로 binning하여 각 영역에서 모델 예측 후 rouge score 확인
 <img width="388" height="339" alt="image" src="https://github.com/user-attachments/assets/a85a86a1-93b5-451e-9d26-4c0cdd096479" />
@@ -281,5 +282,5 @@ frequency_penalty: 0.1 # 중복 억제
 ### Reference
 
 - [Huggingface Transformers](https://huggingface.co/docs)
-- [Upstage/SOLAR 모델 카드]([https://huggingface.co/Upstage/SOLAR-10.7B-Instruct](https://huggingface.co/upstage/SOLAR-10.7B-Instruct-v1.0))
+- [Upstage/SOLAR 모델 카드](https://huggingface.co/upstage/SOLAR-10.7B-Instruct-v1.0)
 - [QLoRA 논문](https://arxiv.org/abs/2305.14314)
