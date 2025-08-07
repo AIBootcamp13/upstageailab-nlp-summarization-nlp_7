@@ -1,8 +1,9 @@
-from transformers import Seq2SeqTrainer, EarlyStoppingCallback, DataCollatorForSeq2Seq
+from transformers import Trainer, EarlyStoppingCallback, DataCollatorWithPadding
 import wandb
 import os
 import sys
 import torch
+from peft import PeftModel
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', ".."))
 sys.path.append(ROOT_DIR)
@@ -10,11 +11,21 @@ print(ROOT_DIR)
 
 from src.train.seq2seqarg import load_seq2seqarg
 from src.metrics.rouge import compute_rouge
-from src.model.bart import load_tokenizer_and_model_for_train, load_tokenizer_and_model_for_test
+from src.model.LLM_QLoRA import load_tokenizer_and_model_for_train
 from src.preprocess.preprocess import Preprocess
-from src.dataset.datamodule import prepare_train_dataset
+from src.dataset.datamodule_QLoRA import prepare_train_dataset
 from src.utils.wandb import wandb_init
 from src.utils.config import load_config, save_config
+from src.utils.customcollate import custom_causal_lm_collator
+
+# def compute(pred, tokenizer, config):
+#     print('-'*10, 'compute', '-'*10,)
+#     preds, labels = pred
+#     labels[labels == -100] = tokenizer.pad_token_id
+#     decoded_labels = tokenizer.batch_decode(labels)
+
+#     print(decoded_labels)
+#     return 0
 
 
 def train(config):
@@ -22,11 +33,10 @@ def train(config):
     print('-'*10, f'device : {device}', '-'*10,)
     print(torch.__version__)
 
-    generate_model, tokenizer = load_tokenizer_and_model_for_test(config, device)
+    generate_model, tokenizer = load_tokenizer_and_model_for_train(config, device)
     print('-'*10,"tokenizer special tokens : ",tokenizer.special_tokens_map,'-'*10)
-    print(tokenizer.special_tokens_map)
 
-    preprocessor = Preprocess(config['tokenizer']['bos_token'], config['tokenizer']['eos_token'])
+    preprocessor = Preprocess(None, None)
     data_path = config['general']['data_path']
     train_inputs_dataset, val_inputs_dataset = prepare_train_dataset(config, preprocessor, data_path, tokenizer)
 
@@ -53,28 +63,38 @@ def train(config):
     print('-'*10, 'Make training arguments complete', '-'*10,)
     print('-'*10, 'Make trainer', '-'*10,)
 
+    data_collator = custom_causal_lm_collator(tokenizer)
 
     # Trainer 클래스를 정의합니다.
-    trainer = Seq2SeqTrainer(
+    trainer = Trainer(
         model=generate_model, # 사용자가 사전 학습하기 위해 사용할 모델을 입력합니다.
         args=training_args,
         train_dataset=train_inputs_dataset,
         eval_dataset=val_inputs_dataset,
-        compute_metrics = lambda pred: compute_rouge(config, tokenizer, pred),
-        callbacks = [MyCallback]
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        # compute_metrics = lambda pred: compute(pred, tokenizer, config)
+        # callbacks = [MyCallback],
     )
+    generate_model.config.use_cache = False
+
+    print(f"Using device: {trainer.args.device}")
     print('-'*10, 'Make trainer complete', '-'*10,)
 
     trainer.train()
 
+    best_ckpt = trainer.state.best_model_checkpoint
+
+    generate_model.save_pretrained(best_ckpt, save_adapter=True)
+
     wandb.finish()
-    return trainer.state.best_model_checkpoint
+    return best_ckpt
 
 
 if __name__ == "__main__":
-    config_adj, config = load_config()
+    config_adj, config = load_config(name="config_QLoRA")
     best_model_checkpoint = train(config_adj)
 
     config['inference']['ckt_path'] = best_model_checkpoint
-    save_config(config)
+    save_config(config, name="config_QLoRA")
     print(best_model_checkpoint)

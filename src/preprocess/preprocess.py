@@ -14,8 +14,7 @@ class Preprocess:
     def make_set_as_df(file_path, is_train = True):
         if is_train:
             df = pd.read_csv(file_path)
-            train_df = df[['fname','dialogue','summary','topic']]
-            return train_df
+            return df
         else:
             df = pd.read_csv(file_path)
             test_df = df[['fname','dialogue']]
@@ -32,3 +31,9 @@ class Preprocess:
             decoder_input = dataset['summary'].apply(lambda x : self.bos_token + str(x)) # Ground truth를 디코더의 input으로 사용하여 학습합니다.
             decoder_output = dataset['summary'].apply(lambda x : str(x) + self.eos_token)
             return encoder_input.tolist(), decoder_input.tolist(), decoder_output.tolist()
+    
+    def make_tapt_input(self, dataset):
+        encoder_input = dataset['dialogue']
+        decoder_input = dataset['dialogue'].apply(lambda x : self.bos_token + str(x))
+        decoder_output = dataset['dialogue'].apply(lambda x : str(x) + self.eos_token)
+        return encoder_input.tolist(), decoder_input.tolist(), decoder_output.tolist()

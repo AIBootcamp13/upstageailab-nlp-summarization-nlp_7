@@ -8,12 +8,12 @@ def compute_rouge(config,tokenizer,pred):
     predictions[predictions == -100] = tokenizer.pad_token_id
     labels[labels == -100] = tokenizer.pad_token_id
 
-    decoded_preds = tokenizer.batch_decode(predictions, clean_up_tokenization_spaces=True)
-    labels = tokenizer.batch_decode(labels, clean_up_tokenization_spaces=True)
+    decoded_preds = tokenizer.batch_decode(predictions, skip_special_tokens=False)
+    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=False)
 
     # 정확한 평가를 위해 미리 정의된 불필요한 생성토큰들을 제거합니다.
     replaced_predictions = decoded_preds.copy()
-    replaced_labels = labels.copy()
+    replaced_labels = decoded_labels.copy()
     remove_tokens = config['inference']['remove_tokens']
     for token in remove_tokens:
         replaced_predictions = [sentence.replace(token," ") for sentence in replaced_predictions]
@@ -30,11 +30,16 @@ def compute_rouge(config,tokenizer,pred):
     print(f"GOLD: {replaced_labels[2]}")
 
     # 최종적인 ROUGE 점수를 계산합니다.
-    results = rouge.get_scores(replaced_predictions, replaced_labels,avg=True)
+    results = rouge.get_scores(replaced_predictions, replaced_labels, avg=True)
 
-    # ROUGE 점수 중 F-1 score를 통해 평가합니다.
+    # f1 기준 점수만 추출
     result = {key: value["f"] for key, value in results.items()}
+    rouge_avg = (result["rouge-1"] + result["rouge-2"] + result["rouge-l"]) / 3
 
-    # 평균값 result에 추가
-    result['rouge_avg'] = sum(result.values()) / len(result)
-    return result
+    
+    return {
+            "rouge-1": result["rouge-1"],
+            "rouge-2": result["rouge-2"],
+            "rouge-l": result["rouge-l"],
+            "rouge_avg": rouge_avg
+        }

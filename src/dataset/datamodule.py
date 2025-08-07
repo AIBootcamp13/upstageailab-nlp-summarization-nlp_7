@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.append(ROOT_DIR)
@@ -8,11 +9,15 @@ from src.dataset.dataset_bart import DatasetForTrain, DatasetForVal, DatasetForI
 
 
 def prepare_train_dataset(config, preprocessor, data_path, tokenizer):
-    train_file_path = os.path.join(data_path,'train.csv')
+    train_file_path = os.path.join(data_path,'train_organized.csv')
+    train_file_aug_path = os.path.join(data_path,'sbert_filtered_dial.csv')
     val_file_path = os.path.join(data_path,'dev.csv')
 
     # train, validation에 대해 각각 데이터프레임을 구축합니다.
-    train_data = preprocessor.make_set_as_df(train_file_path)
+    train_data_origin = preprocessor.make_set_as_df(train_file_path)
+    train_data_aug = preprocessor.make_set_as_df(train_file_aug_path)
+    train_data = pd.concat([train_data_origin, train_data_aug], ignore_index=True)
+    print(train_data.head())
     val_data = preprocessor.make_set_as_df(val_file_path)
 
     print('-'*150)
@@ -47,6 +52,28 @@ def prepare_train_dataset(config, preprocessor, data_path, tokenizer):
 
     print('-'*10, 'Make dataset complete', '-'*10,)
     return train_inputs_dataset, val_inputs_dataset
+
+def prepare_eval_dataset(config, preprocessor, tokenizer):
+
+    test_file_path = os.path.join(config['general']['data_path'],'dev_eda.csv')
+
+    test_data = preprocessor.make_set_as_df(test_file_path)
+    test_id = test_data['fname']
+
+    print('-'*150)
+    print(f'test_data:\n{test_data["dialogue"][0]}')
+    print('-'*150)
+
+    encoder_input_test , _ = preprocessor.make_input(test_data,is_test=True)
+    print('-'*10, 'Load data complete', '-'*10,)
+
+    test_tokenized_encoder_inputs = tokenizer(encoder_input_test, return_tensors="pt", padding=True,
+                    add_special_tokens=True, truncation=True, max_length=config['tokenizer']['encoder_max_len'], return_token_type_ids=False,)
+
+    test_encoder_inputs_dataset = DatasetForInference(test_tokenized_encoder_inputs, test_id, len(encoder_input_test))
+    print('-'*10, 'Make dataset complete', '-'*10,)
+
+    return test_data, test_encoder_inputs_dataset
 
 
 def prepare_test_dataset(config, preprocessor, tokenizer):
