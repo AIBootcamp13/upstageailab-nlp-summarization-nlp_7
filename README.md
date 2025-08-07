@@ -74,28 +74,45 @@ bitsandbytes>=0.46.1
 ### Directory Structure
 
 ```
-├── code
-│   ├── dataset
+.
+├── config/
+├── data/
+├── notebooks/
+│   └── KJB/
+├── script/ # gradio를 활용한 결과 분석 script 등
+├── src/
+│   ├── dataset/           # 데이터 전처리, 로더, 토크나이저
 │   │   └── preprocess.py
-│   ├── train
-│   │   └── train_QLoRA.py
-│   ├── inference
+│   │   └── loader.py
+│
+│   ├── model/             # 모델 아키텍처 및 로딩
+│   │   └── base_model.py
+│   │   └── lora_wrapper.py
+│   │   └── peft_loader.py
+│
+│   ├── train/             # 학습 로직
+│   │   └── train_qlora.py
+│   │   └── trainer.py
+│
+│   ├── evaluation/        # 평가 및 메트릭
+│   │   └── evaluator.py
+│   │   └── metrics.py
+│
+│   ├── inference/         # 추론 및 생성
 │   │   └── infer.py
-│   ├── utils
-│   │   ├── collator.py
-│   │   ├── formatter.py
-│   │   └── rouge.py
-│   └── config
-│       └── config.yaml
-├── input
-│   └── data
-│       ├── train.csv
-│       └── eval.csv
-├── output
-│   ├── checkpoints/
-│   └── submission.csv
-└── docs
-    └── presentation.pdf
+│   │   └── generator.py
+│
+│   ├── util/              # 공통 유틸 함수
+│   │   └── collator.py
+│   │   └── logger.py
+│   │   └── config_loader.py
+│
+│   └── main.py            # 실행 진입점 (예: argparse 기반 전체 파이프라인)
+├── .env.template
+├── .gitignore
+├── README.md
+├── requirements.txt
+
 ```
 
 ---
@@ -104,8 +121,9 @@ bitsandbytes>=0.46.1
 
 ### Dataset Overview
 
-- `train.csv`: 1,000개 대화문 + 요약  
-- `eval.csv`: 249개 대화문 (요약 없음)  
+- `train.csv`: 12457개 대화문 + 요약  
+- `dev.csv`: 500개 대화문 + 요약
+- 'train.csv': 500개 대화문  
 - 대화 형식: turn 기반 (`#Person1#: ...`, `#Person2#: ...`)
 
 ### EDA
