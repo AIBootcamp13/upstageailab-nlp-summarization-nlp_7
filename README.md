@@ -264,13 +264,15 @@ frequency_penalty: 0.1 # 중복 억제
 - **순위**:  1위  
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fbcb6795-de9b-40b9-9241-14c9f4b276bd" width="45%" />
-  <img src="https://github.com/user-attachments/assets/ac7af015-48a0-473b-9992-11b82c361bec" width="45%" />
+  <img src="https://github.com/user-attachments/assets/470e58bc-7d9c-4e8e-b943-f9daafb41443" width="45%" />
+  <img src="https://github.com/user-attachments/assets/6383b8df-6a20-4967-a050-b866ece86b05" width="45%" />
 </p>
 
 ### Presentation
 
-- [📎 발표자료 (PDF)](https://drive.google.com/file/d/1KCp7ExnV50lV6QPp5LCabN_6-64wZWKT/view?usp=sharing)
+[📎 발표자료 (PDF)](https://drive.google.com/file/d/1KCp7ExnV50lV6QPp5LCabN_6-64wZWKT/view?usp=sharing)
+
+---
 
 ### Reference
 
