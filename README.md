@@ -4,7 +4,7 @@
 
 | ![박패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![이패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![최패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![김패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![오패캠](https://avatars.githubusercontent.com/u/156163982?v=4) |
 |:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|
-| [박패캠](https://github.com/UpstageAILab) | [이패캠](https://github.com/UpstageAILab) | [최패캠](https://github.com/UpstageAILab) | [김패캠](https://github.com/UpstageAILab) | [오패캠](https://github.com/UpstageAILab) |
+| [홍상호](https://github.com/UpstageAILab) | [고민주](https://github.com/UpstageAILab) | [김정빈](https://github.com/UpstageAILab) | [박성진](https://github.com/UpstageAILab) | [소재목](https://github.com/UpstageAILab) |
 | 팀장, 총괄 기획 | 데이터 분석, EDA | 모델링, 파인튜닝, 성능 개선 | 실험 자동화, 스크립트 개발 | 실험 관리, 리포트 정리 및 발표자료 제작 |
 
 ---
