@@ -140,13 +140,6 @@ bitsandbytes>=0.46.1
 ### Data Processing
 
 - 특수 문자 제거, 불필요한 공백 정리  
-- 템플릿 삽입  
-  ```
-  ### Instruction: 다음 대화를 요약해줘.
-  ### Input:
-  (대화)
-  ### Output:
-  ```
 - Truncation 및 max_length 지정
 
 ### Data Augumentation
@@ -187,7 +180,7 @@ frequency_penalty: 0.1 # 중복 억제
 	- 긴 dialogue의 핵심 문맥을 잡지 못하고 요약 정확도(ROUGE) 낮음
 	- 인코딩 과정에서 의미 손실 발생 → Context 파악 미흡
 
-####도메인 적응 사전학습 (TAPT)
+#### 도메인 적응 사전학습 (TAPT)
 - 도입 배경
 	- 대화체 특유 어휘/구문 구조가 사전학습된 모델에 적게 반영됨
 	- 대화체에 특화된 encoder를 획득하고 downstream 성능 향상
