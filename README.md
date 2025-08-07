@@ -128,7 +128,10 @@ bitsandbytes>=0.46.1
 
 ### EDA
 
-- 평균 발화 수: 7.8  
+- 문장 길이 분포 분석: dialogue와 summary의 길이 분석
+ <img width="453" height="292" alt="image" src="https://github.com/user-attachments/assets/93e79264-a39f-4a28-af9e-8cefd9832d11" />
+
+
 - 평균 요약 길이: 23.1 토큰  
 - Coverage ratio 분석 결과: 일부 요약이 지나치게 상세하거나 중복된 표현 포함
 
