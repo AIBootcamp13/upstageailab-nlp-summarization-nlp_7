@@ -2,6 +2,8 @@
 
 ## Team
 
+### 7조 팀명: 남녀노소
+
 | ![박패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![이패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![최패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![김패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![오패캠](https://avatars.githubusercontent.com/u/156163982?v=4) |
 |:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|:----------------------------------------------------------------:|
 | [홍상호](https://github.com/UpstageAILab) | [고민주](https://github.com/UpstageAILab) | [김정빈](https://github.com/UpstageAILab) | [박성진](https://github.com/UpstageAILab) | [소재목](https://github.com/UpstageAILab) |
@@ -271,6 +273,10 @@ frequency_penalty: 0.1 # 중복 억제
 ### Presentation
 
 [📎 발표자료 (PDF)](https://drive.google.com/file/d/1KCp7ExnV50lV6QPp5LCabN_6-64wZWKT/view?usp=sharing)
+
+### Record
+
+[7조 노션](https://www.notion.so/7-21140cb3731d80028eafddf88e9cdb17)
 
 ---
 
